@@ -8,7 +8,9 @@
   @viteReactRefresh
   @vite(['resources/css/app.css', 'resources/ts/app.tsx'])
   @inertiaHead
-
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
   <script>
     (function () {
       const savedTheme = localStorage.getItem("theme") || "light";

@@ -28,7 +28,7 @@ export default function Login() {
           <figure className="h-[80vh]">
             <img src="/images/login.png" alt={t('app.login_illustration')} className="h-full w-full object-cover" />
           </figure>
-          <div className="card-body lg:w-[450px]">
+          <div className="card-body lg:w-[450px] justify-center">
             <h2 className="card-title text-2xl font-bold">{t('app.welcome')}</h2>
             <div className="text-base-content/70 mb-4">{t('app.login_subtitle')}</div>
 
