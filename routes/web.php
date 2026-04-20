@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -9,3 +10,5 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return inertia('login');
 })->name('login');
+
+Route::get('/lang/{locale}', [LanguageController::class, 'switch'])->name('lang.switch');
