@@ -13,6 +13,16 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'locale' => app()->getLocale(),
             'translations' => $this->getTranslations(),
+            'auth' => [
+                'user' => $request->user()?->only('id', 'name', 'email', 'avatar') ?? null,
+                'roles' => $request->user()?->getRoleNames() ?? [],
+                'permissions' => $request->user()?->getAllPermissions()->pluck('name') ?? [],
+            ],
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'id' => uniqid(),
+            ],
         ];
     }
 
@@ -21,7 +31,8 @@ class HandleInertiaRequests extends Middleware
         $locale = app()->getLocale();
         $path = lang_path("{$locale}");
 
-        if (!is_dir($path)) return [];
+        if (!is_dir($path))
+            return [];
 
         $translations = [];
         foreach (glob("{$path}/*.php") as $file) {

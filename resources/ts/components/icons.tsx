@@ -13,6 +13,18 @@ export const IconUser = () => (
   </svg>
 );
 
+export const IconUsers = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+    <path d="M5 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM1 14c0-2.5 1.8-4.5 4-4.5s4 2 4 4.5M10 4.5a2 2 0 100 4 2 2 0 000-4zM7 14c0-1.8 1.3-3.3 3-3.3s3 1.5 3 3.3" />
+  </svg>
+);
+
+export const IconRoles = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+    <path d="M8 2.5L3.5 4.5v4.5c0 3 2 5.5 4.5 6.5 2.5-1 4.5-3.5 4.5-6.5v-4.5L8 2.5z" />
+  </svg>
+);
+
 export const IconList = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
     <path d="M3 4h10M3 8h7M3 12h4" />
