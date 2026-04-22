@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+use Spatie\Permission\Models\Role;
+
+class UserController extends Controller
+{
+    /**
+     * Display a listing of users.
+     */
+    public function index(Request $request): Response
+    {
+        return Inertia::render('users/index', [
+            'users' => User::query()
+                ->with('roles')
+                ->when($request->input('search'), function ($query, $search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orderBy('name')
+                ->paginate(10)
+                ->withQueryString(),
+            'roles' => Role::orderBy('name')->get(),
+        ]);
+    }
+
+    /**
+     * Store a newly created user in storage.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['exists:roles,id'],
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => bcrypt($validated['password']),
+        ]);
+
+        if (!empty($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
+        }
+
+        return redirect()
+            ->route('users.index', $request->only(['search', 'page']))
+            ->with('success', 'app.user_created_success');
+    }
+
+    /**
+     * Update the specified user in storage.
+     */
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['exists:roles,id'],
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        if (isset($validated['roles'])) {
+            $user->syncRoles($validated['roles']);
+        }
+
+        return redirect()
+            ->route('users.index', $request->only(['search', 'page']))
+            ->with('success', 'app.user_updated_success');
+    }
+
+    public function updatePassword(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update([
+            'password' => bcrypt($validated['password']),
+        ]);
+
+        return redirect()
+            ->route('users.index', $request->only(['search', 'page']))
+            ->with('success', 'app.password_changed_success');
+    }
+
+    /**
+     * Delete the specified user from storage.
+     */
+    public function destroy(Request $request, User $user): RedirectResponse
+    {
+        $user->delete();
+
+        return redirect()
+            ->route('users.index', $request->only(['search', 'page']))
+            ->with('success', 'app.user_deleted_success');
+    }
+}

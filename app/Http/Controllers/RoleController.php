@@ -51,7 +51,7 @@ class RoleController extends Controller
 
         return redirect()
             ->route('roles.index', $request->only(['search', 'page']))
-            ->with('success', trans('app.role_created_success'));
+            ->with('success', 'app.role_created_success');
     }
 
     /**
@@ -61,13 +61,19 @@ class RoleController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:roles,name,' . $role->id],
+            'permissions' => ['nullable', 'array'],
+            'permissions.*' => ['exists:permissions,id'],
         ]);
 
         $role->update($validated);
 
+        if (!empty($validated['permissions'])) {
+            $role->syncPermissions($validated['permissions']);
+        }
+
         return redirect()
             ->route('roles.index', $request->only(['search', 'page']))
-            ->with('success', trans('app.role_updated_success'));
+            ->with('success', 'app.role_updated_success');
     }
 
     /**
@@ -79,6 +85,6 @@ class RoleController extends Controller
 
         return redirect()
             ->route('roles.index', $request->only(['search', 'page']))
-            ->with('success', trans('app.role_deleted_success'));
+            ->with('success', 'app.role_deleted_success');
     }
 }

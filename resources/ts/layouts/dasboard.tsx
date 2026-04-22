@@ -4,13 +4,13 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { IconBell, IconCalendar, IconChart, IconClock, IconGrid, IconLanguage, IconList, IconLogout, IconMenu, IconRoles, IconSearch, IconSettings, IconUser, IconUsers } from "@/components/icons";
 import { APP_NAME, LOCALES } from "@/types/consts";
 import { usePermission } from "@/hooks/usePermission";
-import type { NavItem } from "@/types/interfaces";
+import type { NavItem, PageProps } from "@/types/interfaces";
 
 // --- Main Component ---
 export default function DashboardLayout({ children }: { children?: React.ReactNode }) {
-  const { url, props } = usePage();
+  const { url, props } = usePage<PageProps>();
   const [showSuccess, setShowSuccess] = useState(false);
-  const flash = props.flash as { success?: string; id?: string };
+  const flash = props.flash as { success?: string; id?: string | number };
 
   // Show success message when flash data changes
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
     }
   }, [flash?.success, flash?.id]);
 
-  const { t } = useTranslation();
+  const { t, changeLocale } = useTranslation();
   const { hasAnyRole, canAny } = usePermission();
 
   const navSections: { key: string; items: NavItem[] }[] = [
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
               <path d="M13.485 3.515a.5.5 0 0 1 .11.622l-6 10a.5.5 0 0 1-.772.103l-4-4a.5.5 0 0 1 .707-.707l3.52 3.52 5.756-9.593a.5.5 0 0 1 .68-.145z" />
             </svg>
           </div>
-          <span className="text-[13px] font-medium">{flash.success}</span>
+          <span className="text-[13px] font-medium">{t(flash.success)}</span>
           <button
             onClick={() => setShowSuccess(false)}
             className="ml-1 opacity-60 hover:opacity-100 transition-opacity cursor-pointer border-none bg-transparent p-1"
@@ -168,11 +168,17 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
                 style={{ background: "#d5cff7", color: "#5340c9" }}
               >
-                AW
+                {props.auth.user.name
+                  .split(" ")
+                  .filter(Boolean)
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium text-base-content truncate">Alex Wirawan</div>
-                <div className="text-[11px] text-base-content/40">{t('app.role_admin')}</div>
+                <div className="text-[13px] font-medium text-base-content truncate">{props.auth.user.name}</div>
+                <div className="text-[11px] text-base-content/40">{props.auth.roles.join(', ')}</div>
               </div>
             </div>
             <Link
@@ -221,7 +227,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
             <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
               {LOCALES.map(({ code, label }) => (
                 <li key={code}>
-                  <a onClick={() => router.get(`/lang/${code}`)}>{label}</a>
+                  <a onClick={() => changeLocale(code)}>{label}</a>
                 </li>
               ))}
             </ul>

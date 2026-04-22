@@ -3,6 +3,7 @@ export interface User {
   name: string
   email: string
   avatar?: string
+  roles?: Role[]
 }
 
 export interface Auth {
@@ -34,6 +35,11 @@ export interface PaginationProps<T> {
   current_page: number;
   last_page: number;
   total: number;
+}
+
+export interface SelectedItem {
+    id: number
+    name: string
 }
 
 export interface NavItem {

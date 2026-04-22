@@ -12,7 +12,6 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
-            'translations' => $this->getTranslations(),
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'avatar') ?? null,
                 'roles' => $request->user()?->getRoleNames() ?? [],
@@ -24,22 +23,5 @@ class HandleInertiaRequests extends Middleware
                 'id' => uniqid(),
             ],
         ];
-    }
-
-    private function getTranslations(): array
-    {
-        $locale = app()->getLocale();
-        $path = lang_path("{$locale}");
-
-        if (!is_dir($path))
-            return [];
-
-        $translations = [];
-        foreach (glob("{$path}/*.php") as $file) {
-            $key = basename($file, '.php');
-            $translations[$key] = require $file;
-        }
-
-        return $translations;
     }
 }

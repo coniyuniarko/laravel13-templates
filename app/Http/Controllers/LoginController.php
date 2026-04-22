@@ -25,7 +25,7 @@ class LoginController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => trans('app.login_failed'),
+            'email' => 'app.login_failed',
         ]);
     }
 

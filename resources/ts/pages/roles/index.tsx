@@ -3,8 +3,9 @@ import { Head, Link, router, useForm } from "@inertiajs/react";
 import DashboardLayout from "@/layouts/dasboard";
 import { useTranslation } from "@/hooks/useTranslation";
 import { usePermission } from "@/hooks/usePermission";
-import { IconSettings, IconUsers } from "@/components/icons";
-import type { Role, PaginationProps, Permission } from "@/types/interfaces";
+import { IconSettings, IconUsers, IconPlus, IconEdit, IconTrash, IconRoles } from "@/components/icons";
+import type { Role, PaginationProps, Permission, SelectedItem } from "@/types/interfaces";
+import DeleteModal from "@/components/DeleteModal";
 
 export default function RolesIndex({ roles, permissions }: { roles: PaginationProps<Role>, permissions: Permission[] }) {
   const { t } = useTranslation();
@@ -12,6 +13,7 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [searchQuery, setSearchQuery] = useState(new URLSearchParams(window.location.search).get('search') || '');
   const [permSearch, setPermSearch] = useState('');
+  const [selected, setSelected] = useState<SelectedItem | null>(null);
   const { data, setData, post, put, processing, errors, reset } = useForm({
     name: '',
     permissions: [] as number[],
@@ -19,8 +21,8 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.get('/roles', 
-        { search: searchQuery }, 
+      router.get('/roles',
+        { search: searchQuery },
         { preserveState: true, replace: true }
       );
     }, 300);
@@ -28,12 +30,16 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const queryParams = new URLSearchParams({
+  const getQueryParams = () => {
+    return new URLSearchParams({
       search: searchQuery,
       page: roles.current_page.toString(),
     }).toString();
+  }
+
+  const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const queryParams = getQueryParams();
     const url = (editingRole ? `/roles/${editingRole.id}` : '/roles') + `?${queryParams}`;
     const method = editingRole ? put : post;
 
@@ -47,14 +53,18 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
     });
   };
 
-  const handleDelete = (id: number, name: string) => {
-    if (confirm(t('app.confirm_delete_role', { name }))) {
-      const queryParams = new URLSearchParams({
-        search: searchQuery,
-        page: roles.current_page.toString(),
-      }).toString();
-      router.delete(`/roles/${id}?${queryParams}`);
-    }
+  const handleDelete = async () => {
+    if (!selected) return;
+    const queryParams = getQueryParams();
+
+    return new Promise<void>((resolve) => {
+      router.delete(`/roles/${selected.id}?${queryParams}`, {
+        onSuccess: () => {
+          setSelected(null);
+        },
+        onFinish: () => resolve(),
+      });
+    });
   };
 
   return (
@@ -86,9 +96,9 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
                   reset();
                   (document.getElementById('create_role_modal') as HTMLDialogElement).showModal();
                 }}
-                className="btn btn-primary btn-sm normal-case gap-2 border-none cursor-pointer whitespace-nowrap"
+                className="btn btn-primary btn-sm normal-case gap-1.5 border-none cursor-pointer whitespace-nowrap"
               >
-                <span className="text-lg">+</span>
+                <IconPlus />
                 {t('app.create_role')}
               </button>
             )}
@@ -114,13 +124,13 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
                     <td>
                       <div className="flex items-center gap-2 font-medium text-base-content">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                          <IconSettings />
+                          <IconRoles />
                         </div>
                         {role.name}
                       </div>
                     </td>
                     <td>
-                      <div className="flex flex-wrap gap-1 max-w-xs">
+                      <div className="flex flex-wrap gap-1">
                         {role.permissions?.map((p) => (
                           <span key={p.id} className="badge badge-ghost text-[10px] opacity-70">
                             {p.name}
@@ -141,16 +151,21 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
                               });
                               (document.getElementById('create_role_modal') as HTMLDialogElement).showModal();
                             }}
-                            className="btn btn-ghost btn-xs text-info hover:bg-info/10 border-none bg-transparent cursor-pointer"
+                            className="btn btn-ghost btn-xs text-info hover:bg-info/10 border-none bg-transparent cursor-pointer gap-1"
                           >
+                            <IconEdit />
                             {t('app.edit')}
                           </button>
                         )}
                         {can('delete roles') && (
-                          <button 
-                            onClick={() => handleDelete(role.id, role.name)}
-                            className="btn btn-ghost btn-xs text-error hover:bg-error/10 border-none bg-transparent cursor-pointer"
+                          <button
+                            onClick={() => {
+                              setSelected({ id: role.id, name: role.name });
+                              (document.getElementById('delete-modal') as HTMLDialogElement).showModal();
+                            }}
+                            className="btn btn-ghost btn-xs text-error hover:bg-error/10 border-none bg-transparent cursor-pointer gap-1"
                           >
+                            <IconTrash />
                             {t('app.delete')}
                           </button>
                         )}
@@ -196,12 +211,12 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
               <label className="label py-1">
                 <span className="label-text font-semibold text-base-content/70">{t('app.role_name')}</span>
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={data.name}
                 onChange={e => setData('name', e.target.value)}
                 placeholder={t('app.role_name_placeholder')}
-                className={`input input-bordered w-full bg-base-100 ${errors.name ? 'input-error' : ''}`} 
+                className={`input input-bordered w-full bg-base-100 ${errors.name ? 'input-error' : ''}`}
               />
               {errors.name && <span className="text-error text-xs mt-1">{errors.name}</span>}
             </div>
@@ -214,22 +229,22 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
                 {permissions
                   .filter(p => p.name.toLowerCase().includes(permSearch.toLowerCase()))
                   .map((permission) => (
-                  <label key={permission.id} className="label cursor-pointer justify-start gap-3 border border-base-300 rounded-xl px-4 py-2.5 hover:bg-base-200 transition-colors">
-                    <input 
-                      type="checkbox" 
-                      className="checkbox checkbox-primary checkbox-sm rounded-md" 
-                      checked={data.permissions.includes(permission.id)}
-                      onChange={(e) => {
-                        const id = permission.id;
-                        const newPermissions = e.target.checked 
-                          ? [...data.permissions, id]
-                          : data.permissions.filter(p => p !== id);
-                        setData('permissions', newPermissions);
-                      }}
-                    />
-                    <span className="label-text text-[13px] font-medium text-base-content">{permission.name}</span>
-                  </label>
-                ))}
+                    <label key={permission.id} className="label cursor-pointer justify-start gap-3 border border-base-300 rounded-xl px-4 py-2.5 hover:bg-base-200 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary checkbox-sm rounded-md"
+                        checked={data.permissions.includes(permission.id)}
+                        onChange={(e) => {
+                          const id = permission.id;
+                          const newPermissions = e.target.checked
+                            ? [...data.permissions, id]
+                            : data.permissions.filter(p => p !== id);
+                          setData('permissions', newPermissions);
+                        }}
+                      />
+                      <span className="label-text text-[13px] font-medium text-base-content">{permission.name}</span>
+                    </label>
+                  ))}
               </div>
             </div>
 
@@ -242,6 +257,12 @@ export default function RolesIndex({ roles, permissions }: { roles: PaginationPr
           </form>
         </div>
       </dialog>
+      <DeleteModal
+        id="delete-modal"
+        title={t('app.delete')}
+        description={selected ? t('app.confirm_delete_role', { name: selected.name }) : ''}
+        onConfirm={handleDelete}
+      />
     </DashboardLayout>
   );
 }
