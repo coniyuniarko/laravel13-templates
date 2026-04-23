@@ -4,6 +4,7 @@ import '../css/app.css'
 import { createInertiaApp } from '@inertiajs/react'
 import { createRoot } from 'react-dom/client'
 import { APP_NAME } from './types/consts.js'
+import { TranslationProvider } from './context/TranslationContext'
 
 createInertiaApp({
   resolve: (name: string) => {
@@ -12,7 +13,11 @@ createInertiaApp({
   },
 
   setup({ el, App, props }: { el: HTMLElement; App: any; props: any }) {
-    createRoot(el).render(<App {...props} />)
+    createRoot(el).render(
+      <TranslationProvider>
+        <App {...props} />
+      </TranslationProvider>
+    )
   },
 
   title: (title: string) => `${title} - ${APP_NAME}`,

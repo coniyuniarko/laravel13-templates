@@ -12,12 +12,15 @@ export default function UsersIndex({ users, roles }: { users: PaginationProps<Us
   const { can } = usePermission();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState(new URLSearchParams(window.location.search).get('search') || '');
+  const [preview, setPreview] = useState<string | null>(null);
   const [selected, setSelected] = useState<SelectedItem | null>(null);
   const { data, setData, post, put, processing, errors, reset } = useForm({
     name: '',
     email: '',
     password: '',
+    avatar: null as File | null,
     roles: [] as number[],
+    _method: 'post',
   });
 
   const { data: passwordData, setData: setPasswordData, put: putPassword, processing: passwordProcessing, errors: passwordErrors, reset: resetPassword } = useForm({
@@ -25,6 +28,18 @@ export default function UsersIndex({ users, roles }: { users: PaginationProps<Us
     password_confirmation: '',
   });
   const [passwordUser, setPasswordUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (data.avatar instanceof File) {
+      const objectUrl = URL.createObjectURL(data.avatar);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else if (editingUser?.avatar) {
+      setPreview('/' + editingUser.avatar);
+    } else {
+      setPreview(null);
+    }
+  }, [data.avatar, editingUser]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,9 +63,9 @@ export default function UsersIndex({ users, roles }: { users: PaginationProps<Us
     e.preventDefault();
     const queryParams = getQueryParams();
     const url = (editingUser ? `/users/${editingUser.id}` : '/users') + `?${queryParams}`;
-    const method = editingUser ? put : post;
 
-    method(url, {
+    // Use post with _method spoofing for file uploads in Laravel updates
+    post(url, {
       preserveScroll: true,
       onSuccess: () => {
         (document.getElementById('create_user_modal') as HTMLDialogElement).close();
@@ -144,8 +159,12 @@ export default function UsersIndex({ users, roles }: { users: PaginationProps<Us
                     <td className="text-base-content/50">#{user.id}</td>
                     <td>
                       <div className="flex items-center gap-2 font-medium text-base-content">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                          <IconUser />
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center overflow-hidden">
+                          {user.avatar ? (
+                            <img src={'/' + user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <IconUser />
+                          )}
                         </div>
                         {user.name}
                       </div>
@@ -183,7 +202,9 @@ export default function UsersIndex({ users, roles }: { users: PaginationProps<Us
                                 name: user.name,
                                 email: user.email,
                                 password: '',
+                                avatar: null,
                                 roles: user.roles?.map((r: any) => r.id) || [],
+                                _method: 'put',
                               });
                               (document.getElementById('create_user_modal') as HTMLDialogElement).showModal();
                             }}
@@ -243,6 +264,40 @@ export default function UsersIndex({ users, roles }: { users: PaginationProps<Us
           </h3>
 
           <form onSubmit={submit} className="mt-4 flex flex-col gap-5">
+            <div className="form-control w-full">
+              <label className="label py-1">
+                <span className="label-text font-semibold text-base-content/70">{t('app.avatar')}</span>
+              </label>
+              <div className="flex flex-col items-center gap-2">
+                <label className="relative group cursor-pointer">
+                  <input
+                    type="file"
+                    onChange={e => setData('avatar', (e.target.files && e.target.files[0]) || null)}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                  <div className="avatar">
+                    <div className="w-24 h-24 rounded-xl ring ring-primary ring-offset-base-100 ring-offset-2 overflow-hidden bg-primary/10 flex items-center justify-center">
+                      {preview ? (
+                        <img src={preview} alt="Avatar preview" className="object-cover" />
+                      ) : (
+                        <div className="text-primary scale-150">
+                          <IconUser />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-white" >
+                          <IconEdit />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+                <span className="text-xs text-base-content/50">{t('app.click_to_change_avatar')}</span>
+              </div>
+              {errors.avatar && <span className="text-error text-xs mt-1 text-center">{errors.avatar}</span>}
+            </div>
+
             <div className="form-control w-full">
               <label className="label py-1">
                 <span className="label-text font-semibold text-base-content/70">{t('app.name')}</span>

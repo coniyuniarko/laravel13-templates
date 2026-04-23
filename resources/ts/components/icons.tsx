@@ -122,6 +122,18 @@ export const IconEye = () => (
   </svg>
 );
 
+export const IconChevronDown = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+    <path d="M4 6l4 4 4-4" />
+  </svg>
+);
+
+export const IconChevronUp = () => (
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+    <path d="M4 10l4-4 4 4" />
+  </svg>
+);
+
 export const IconEyeOff = () => (
   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
     <path d="M2 2l12 12M8 3.5C4.5 3.5 1.6 5.5.5 8c1.1 2.5 4 4.5 7.5 4.5S14.4 10.5 15.5 8c-1.1-2.5-4-4.5-7.5-4.5z" />

@@ -3,8 +3,10 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,6 +24,11 @@ Route::get('/lang/{locale}', [LanguageController::class, 'switch'])->name('lang.
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+        Route::put('/', [ProfileController::class, 'update'])->name('update');
+    });
+
     Route::prefix('roles')->name('roles.')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('index')->middleware('can:read roles');
         Route::post('/', [RoleController::class, 'store'])->name('store')->middleware('can:create roles');
@@ -37,4 +44,12 @@ Route::middleware('auth')->group(function () {
         Route::put('{user}/password', [UserController::class, 'updatePassword'])
             ->name('users.password.update')->middleware('can:update users');
     });
+
+
+    Route::get('/avatars/{filename}', function ($filename) {
+        if (!Storage::disk('public')->exists('avatars/' . $filename)) {
+            abort(404);
+        }
+        return response()->file(Storage::disk('public')->path('avatars/' . $filename));
+    })->where('filename', '.*');
 });

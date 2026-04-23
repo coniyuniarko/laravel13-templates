@@ -58,6 +58,10 @@ export const locales = {
       edit_user: 'Edit User',
       user_name_placeholder: 'Enter user name...',
       confirm_delete_user: 'Are you sure you want to delete the user ":name"?',
+      avatar: 'Avatar',
+      click_to_change_avatar: 'Click to change avatar',
+      profile: 'Profile',
+      profile_description: 'Update your personal information and profile picture.',
     },
   },
   id: {
@@ -119,6 +123,10 @@ export const locales = {
       edit_user: 'Ubah Pengguna',
       user_name_placeholder: 'Masukkan nama pengguna...',
       confirm_delete_user: 'Apakah Anda yakin ingin menghapus pengguna ":name"?',
+      avatar: 'Avatar',
+      click_to_change_avatar: 'Klik untuk mengubah avatar',
+      profile: 'Profil',
+      profile_description: 'Perbarui informasi pribadi dan foto profil Anda.',
     },
   },
 };

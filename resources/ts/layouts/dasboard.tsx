@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, router, usePage } from "@inertiajs/react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { IconBell, IconCalendar, IconChart, IconClock, IconGrid, IconLanguage, IconList, IconLogout, IconMenu, IconRoles, IconSearch, IconSettings, IconUser, IconUsers } from "@/components/icons";
+import { IconBell, IconCalendar, IconChart, IconChevronDown, IconClock, IconGrid, IconLanguage, IconList, IconLogout, IconMenu, IconRoles, IconSearch, IconSettings, IconUser, IconUsers } from "@/components/icons";
 import { APP_NAME, LOCALES } from "@/types/consts";
 import { usePermission } from "@/hooks/usePermission";
 import type { NavItem, PageProps } from "@/types/interfaces";
@@ -44,7 +44,7 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
     {
       key: "settings_section",
       items: [
-        { key: "menu_settings", icon: <IconSettings />, url: "/settings" },
+        { key: "profile", icon: <IconUser />, url: "/profile", shown: false },
         { key: "menu_users", icon: <IconUsers />, url: "/users", shown: hasAnyRole(['admin']) || canAny(['create users', 'read users', 'update users', 'delete users']) },
         { key: "menu_roles", icon: <IconRoles />, url: "/roles", shown: hasAnyRole(['admin']) || canAny(['create roles', 'read roles', 'update roles', 'delete roles']) },
       ],
@@ -160,36 +160,6 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
           ))}
         </nav>
 
-        {/* User */}
-        <div className="p-2.5 border-t border-base-300">
-          <div className="flex items-center justify-between gap-2 px-2.5 py-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium shrink-0"
-                style={{ background: "#d5cff7", color: "#5340c9" }}
-              >
-                {props.auth.user.name
-                  .split(" ")
-                  .filter(Boolean)
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium text-base-content truncate">{props.auth.user.name}</div>
-                <div className="text-[11px] text-base-content/40">{props.auth.roles.join(', ')}</div>
-              </div>
-            </div>
-            <Link
-              href="/logout"
-              className="btn btn-ghost btn-xs btn-square text-base-content/40 hover:text-error"
-              title={t('app.logout')}
-            >
-              <IconLogout />
-            </Link>
-          </div>
-        </div>
       </aside>
 
       {/* Main */}
@@ -230,6 +200,52 @@ export default function DashboardLayout({ children }: { children?: React.ReactNo
                   <a onClick={() => changeLocale(code)}>{label}</a>
                 </li>
               ))}
+            </ul>
+          </div>
+
+          {/* User Dropdown */}
+          <div className="dropdown dropdown-end dropdown-hover">
+            <div tabIndex={0} role="button" className="flex items-center gap-1 text-base-content/40 hover:text-primary transition-colors cursor-pointer group">
+              <div className="w-8 h-8 rounded-lg overflow-hidden border border-base-300 group-hover:border-primary transition-colors shrink-0">
+                {props.auth.user.avatar ? (
+                  <img src={'/' + props.auth.user.avatar} alt={props.auth.user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center text-[10px] font-medium"
+                    style={{ background: "#d5cff7", color: "#5340c9" }}
+                  >
+                    {props.auth.user.name
+                      .split(" ")
+                      .filter(Boolean)
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </div>
+                )}
+              </div>
+              <IconChevronDown />
+            </div>
+            <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-xl z-[1] w-52 p-1 shadow-xl border border-base-300 mt-0">
+              <li className="px-3 py-2.5 mb-1 border-b border-base-200 pointer-events-none">
+                <div className="flex flex-col gap-0.5 p-0 bg-transparent">
+                  <div className="text-[13px] font-bold text-base-content truncate">{props.auth.user.name}</div>
+                  <div className="text-[10px] text-base-content/40 uppercase tracking-widest font-semibold">{props.auth.roles.join(', ')}</div>
+                </div>
+              </li>
+              <li>
+                <Link href="/profile" className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium">
+                  <IconUser />
+                  {t('app.profile')}
+                </Link>
+              </li>
+              <div className="divider my-1 opacity-50"></div>
+              <li>
+                <Link href="/logout" className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium text-error hover:bg-error/10">
+                  <IconLogout />
+                  {t('app.logout')}
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
