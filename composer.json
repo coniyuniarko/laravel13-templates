@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^2.0",
+        "laravel-lang/common": "^6.8",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
         "spatie/laravel-permission": "^7.3"
@@ -60,7 +61,8 @@
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
-            "@php artisan boost:update --ansi"
+            "@php artisan boost:update --ansi",
+            "@php artisan lang:update"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

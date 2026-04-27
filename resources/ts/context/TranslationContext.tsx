@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { router } from '@inertiajs/react';
 import { locales } from '../locales';
 
 interface TranslationContextType {
@@ -38,6 +39,9 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
   const changeLocale = (code: string) => {
     localStorage.setItem('locale', code);
     setLocale(code);
+    router.get(`/lang/${code}`, {}, {
+      preserveScroll: true,
+    });
   };
 
   return (
