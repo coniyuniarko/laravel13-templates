@@ -6,11 +6,11 @@ use Illuminate\Http\Request;
 
 class LanguageController extends Controller
 {
+    public const SUPPORTED_LOCALES = ['en', 'id'];
+
     public function switch(Request $request, string $locale)
     {
-        $supported = ['en', 'id'];
-
-        if (!in_array($locale, $supported)) {
+        if (!in_array($locale, self::SUPPORTED_LOCALES)) {
             abort(400, 'Unsupported locale');
         }
 
